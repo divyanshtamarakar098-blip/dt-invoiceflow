@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Invoices from "./pages/Invoices";
 import Payments from "./pages/Payments";
 import Reminders from "./pages/Reminders";
+import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
