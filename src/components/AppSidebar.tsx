@@ -1,11 +1,12 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, CreditCard, MessageCircle } from 'lucide-react';
+import { LayoutDashboard, FileText, CreditCard, MessageCircle, Download } from 'lucide-react';
 
 const links = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/invoices', icon: FileText, label: 'Invoices' },
   { to: '/payments', icon: CreditCard, label: 'Payments' },
   { to: '/reminders', icon: MessageCircle, label: 'Reminders' },
+  { to: '/install', icon: Download, label: 'Install App' },
 ];
 
 const AppSidebar = () => {

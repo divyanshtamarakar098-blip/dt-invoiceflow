@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Invoices from "./pages/Invoices";
 import Payments from "./pages/Payments";
 import Reminders from "./pages/Reminders";
+import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
               <Route path="/invoices" element={<Invoices />} />
               <Route path="/payments" element={<Payments />} />
               <Route path="/reminders" element={<Reminders />} />
+              <Route path="/install" element={<Install />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
