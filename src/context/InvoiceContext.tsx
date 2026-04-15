@@ -1,100 +1,93 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import { Invoice, InvoiceStatus } from '@/types/invoice';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { Invoice, InvoiceItem, InvoiceStatus } from '@/types/invoice';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
 
 interface InvoiceContextType {
   invoices: Invoice[];
-  addInvoice: (invoice: Invoice) => void;
-  updateInvoice: (invoice: Invoice) => void;
-  deleteInvoice: (id: string) => void;
-  updateStatus: (id: string, status: InvoiceStatus) => void;
+  loading: boolean;
+  addInvoice: (invoice: Omit<Invoice, 'id' | 'createdAt'>) => Promise<void>;
+  updateInvoice: (invoice: Invoice) => Promise<void>;
+  deleteInvoice: (id: string) => Promise<void>;
+  updateStatus: (id: string, status: InvoiceStatus) => Promise<void>;
+  refreshInvoices: () => Promise<void>;
 }
 
 const InvoiceContext = createContext<InvoiceContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'invoices_data';
-
-const loadInvoices = (): Invoice[] => {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : sampleInvoices;
-  } catch {
-    return sampleInvoices;
-  }
-};
-
-const sampleInvoices: Invoice[] = [
-  {
-    id: '1',
-    invoiceNumber: 'INV-001',
-    clientName: 'Acme Corp',
-    clientPhone: '+1234567890',
-    clientEmail: 'billing@acme.com',
-    items: [
-      { id: '1', description: 'Web Development', quantity: 40, rate: 100 },
-      { id: '2', description: 'UI Design', quantity: 20, rate: 80 },
-    ],
-    status: 'paid',
-    dueDate: '2025-04-01',
-    createdAt: '2025-03-15',
-    notes: '',
-  },
-  {
-    id: '2',
-    invoiceNumber: 'INV-002',
-    clientName: 'TechStart Inc',
-    clientPhone: '+1987654321',
-    clientEmail: 'pay@techstart.io',
-    items: [
-      { id: '1', description: 'API Integration', quantity: 25, rate: 120 },
-    ],
-    status: 'pending',
-    dueDate: '2025-04-20',
-    createdAt: '2025-04-01',
-    notes: 'Net 30',
-  },
-  {
-    id: '3',
-    invoiceNumber: 'INV-003',
-    clientName: 'Green Solutions',
-    clientPhone: '+1122334455',
-    clientEmail: 'finance@green.co',
-    items: [
-      { id: '1', description: 'Consulting', quantity: 10, rate: 150 },
-      { id: '2', description: 'Report Writing', quantity: 5, rate: 90 },
-    ],
-    status: 'overdue',
-    dueDate: '2025-03-10',
-    createdAt: '2025-02-20',
-    notes: 'Follow up required',
-  },
-];
+const mapRow = (row: any): Invoice => ({
+  id: row.id,
+  invoiceNumber: row.invoice_number,
+  clientName: row.client_name,
+  clientPhone: row.client_phone || '',
+  clientEmail: row.client_email || '',
+  items: (row.items as InvoiceItem[]) || [],
+  status: row.status as InvoiceStatus,
+  dueDate: row.due_date,
+  createdAt: row.created_at?.split('T')[0] || '',
+  notes: row.notes || '',
+});
 
 export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [invoices, setInvoices] = useState<Invoice[]>(loadInvoices);
+  const { user } = useAuth();
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const persist = useCallback((inv: Invoice[]) => {
-    setInvoices(inv);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(inv));
-  }, []);
+  const refreshInvoices = useCallback(async () => {
+    if (!user) { setInvoices([]); setLoading(false); return; }
+    const { data } = await supabase
+      .from('invoices')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    setInvoices((data || []).map(mapRow));
+    setLoading(false);
+  }, [user]);
 
-  const addInvoice = useCallback((invoice: Invoice) => {
-    persist([...invoices, invoice]);
-  }, [invoices, persist]);
+  useEffect(() => { refreshInvoices(); }, [refreshInvoices]);
 
-  const updateInvoice = useCallback((invoice: Invoice) => {
-    persist(invoices.map(i => (i.id === invoice.id ? invoice : i)));
-  }, [invoices, persist]);
+  const addInvoice = useCallback(async (invoice: Omit<Invoice, 'id' | 'createdAt'>) => {
+    if (!user) return;
+    await supabase.from('invoices').insert({
+      user_id: user.id,
+      invoice_number: invoice.invoiceNumber,
+      client_name: invoice.clientName,
+      client_phone: invoice.clientPhone,
+      client_email: invoice.clientEmail,
+      items: invoice.items as any,
+      status: invoice.status as any,
+      due_date: invoice.dueDate,
+      notes: invoice.notes,
+    });
+    await refreshInvoices();
+  }, [user, refreshInvoices]);
 
-  const deleteInvoice = useCallback((id: string) => {
-    persist(invoices.filter(i => i.id !== id));
-  }, [invoices, persist]);
+  const updateInvoice = useCallback(async (invoice: Invoice) => {
+    await supabase.from('invoices').update({
+      invoice_number: invoice.invoiceNumber,
+      client_name: invoice.clientName,
+      client_phone: invoice.clientPhone,
+      client_email: invoice.clientEmail,
+      items: invoice.items as any,
+      status: invoice.status as any,
+      due_date: invoice.dueDate,
+      notes: invoice.notes,
+    }).eq('id', invoice.id);
+    await refreshInvoices();
+  }, [refreshInvoices]);
 
-  const updateStatus = useCallback((id: string, status: InvoiceStatus) => {
-    persist(invoices.map(i => (i.id === id ? { ...i, status } : i)));
-  }, [invoices, persist]);
+  const deleteInvoice = useCallback(async (id: string) => {
+    await supabase.from('invoices').delete().eq('id', id);
+    await refreshInvoices();
+  }, [refreshInvoices]);
+
+  const updateStatus = useCallback(async (id: string, status: InvoiceStatus) => {
+    await supabase.from('invoices').update({ status: status as any }).eq('id', id);
+    await refreshInvoices();
+  }, [refreshInvoices]);
 
   return (
-    <InvoiceContext.Provider value={{ invoices, addInvoice, updateInvoice, deleteInvoice, updateStatus }}>
+    <InvoiceContext.Provider value={{ invoices, loading, addInvoice, updateInvoice, deleteInvoice, updateStatus, refreshInvoices }}>
       {children}
     </InvoiceContext.Provider>
   );
