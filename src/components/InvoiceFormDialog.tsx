@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useInvoices } from '@/context/InvoiceContext';
-import { Invoice, InvoiceItem } from '@/types/invoice';
+import { InvoiceItem } from '@/types/invoice';
 import { Plus, X } from 'lucide-react';
 
 interface Props {
@@ -28,16 +28,17 @@ const InvoiceFormDialog = ({ open, onOpenChange }: Props) => {
   const [dueDate, setDueDate] = useState('');
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState<InvoiceItem[]>([emptyItem()]);
+  const [submitting, setSubmitting] = useState(false);
 
   const updateItem = (id: string, field: keyof InvoiceItem, value: string | number) => {
     setItems(items.map(it => (it.id === id ? { ...it, [field]: value } : it)));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
     const num = `INV-${String(invoices.length + 1).padStart(3, '0')}`;
-    const invoice: Invoice = {
-      id: crypto.randomUUID(),
+    await addInvoice({
       invoiceNumber: num,
       clientName,
       clientPhone,
@@ -45,10 +46,8 @@ const InvoiceFormDialog = ({ open, onOpenChange }: Props) => {
       items,
       status: 'pending',
       dueDate,
-      createdAt: new Date().toISOString().split('T')[0],
       notes,
-    };
-    addInvoice(invoice);
+    });
     onOpenChange(false);
     setClientName('');
     setClientPhone('');
@@ -56,6 +55,7 @@ const InvoiceFormDialog = ({ open, onOpenChange }: Props) => {
     setDueDate('');
     setNotes('');
     setItems([emptyItem()]);
+    setSubmitting(false);
   };
 
   return (
@@ -116,7 +116,9 @@ const InvoiceFormDialog = ({ open, onOpenChange }: Props) => {
 
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit">Create Invoice</Button>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? 'Creating...' : 'Create Invoice'}
+            </Button>
           </div>
         </form>
       </DialogContent>

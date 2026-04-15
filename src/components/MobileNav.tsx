@@ -1,12 +1,12 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, CreditCard, MessageCircle, Download } from 'lucide-react';
+import { LayoutDashboard, FileText, CreditCard, MessageCircle, BarChart3 } from 'lucide-react';
 
 const links = [
   { to: '/', icon: LayoutDashboard, label: 'Home' },
   { to: '/invoices', icon: FileText, label: 'Invoices' },
   { to: '/payments', icon: CreditCard, label: 'Payments' },
   { to: '/reminders', icon: MessageCircle, label: 'Remind' },
-  { to: '/install', icon: Download, label: 'Install' },
+  { to: '/analytics', icon: BarChart3, label: 'Analytics' },
 ];
 
 const MobileNav = () => {
