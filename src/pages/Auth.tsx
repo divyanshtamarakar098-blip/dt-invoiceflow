@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 const Auth = () => {
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,10 +31,15 @@ const Auth = () => {
       if (error) {
         toast({ title: 'Sign up failed', description: error.message, variant: 'destructive' });
       } else {
-        toast({ title: 'Account created!', description: 'Check your email to verify your account.' });
+        toast({ title: 'Account created!', description: 'You are now signed in.' });
       }
     }
     setLoading(false);
+  };
+
+  const handleSkip = () => {
+    localStorage.setItem('guest_mode', 'true');
+    navigate('/');
   };
 
   return (
@@ -67,6 +74,19 @@ const Auth = () => {
             {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Sign Up'}
           </Button>
         </form>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">or</span>
+          </div>
+        </div>
+
+        <Button variant="outline" className="w-full" onClick={handleSkip}>
+          Skip for now — Continue as Guest
+        </Button>
 
         <p className="text-center text-sm text-muted-foreground">
           {isLogin ? "Don't have an account? " : 'Already have an account? '}
