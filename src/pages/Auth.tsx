@@ -1,5 +1,5 @@
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Auth = () => {
-  const { signIn, signUp } = useAuth();
+  const { user, signIn, signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
@@ -16,6 +16,11 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
+
+  if (user) {
+    localStorage.removeItem('guest_mode');
+    return <Navigate to="/" replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,15 +30,21 @@ const Auth = () => {
       const { error } = await signIn(email, password);
       if (error) {
         toast({ title: 'Login failed', description: error.message, variant: 'destructive' });
+      } else {
+        localStorage.removeItem('guest_mode');
+        navigate('/');
       }
     } else {
       const { error } = await signUp(email, password, displayName);
       if (error) {
         toast({ title: 'Sign up failed', description: error.message, variant: 'destructive' });
       } else {
+        localStorage.removeItem('guest_mode');
+        navigate('/');
         toast({ title: 'Account created!', description: 'You are now signed in.' });
       }
     }
+
     setLoading(false);
   };
 
@@ -90,7 +101,7 @@ const Auth = () => {
 
         <p className="text-center text-sm text-muted-foreground">
           {isLogin ? "Don't have an account? " : 'Already have an account? '}
-          <button onClick={() => setIsLogin(!isLogin)} className="text-primary hover:underline font-medium">
+          <button type="button" onClick={() => setIsLogin(!isLogin)} className="text-primary hover:underline font-medium">
             {isLogin ? 'Sign Up' : 'Sign In'}
           </button>
         </p>
