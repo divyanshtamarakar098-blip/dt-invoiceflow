@@ -4,17 +4,17 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/context/AuthContext";
-import { SubscriptionProvider } from "@/context/SubscriptionContext";
+import { RegionProvider } from "@/context/RegionContext";
 import { InvoiceProvider } from "@/context/InvoiceContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AppLayout from "@/components/AppLayout";
+import RegionPickerDialog from "@/components/RegionPickerDialog";
 import Auth from "./pages/Auth";
 import Index from "./pages/Index";
 import Invoices from "./pages/Invoices";
 import Payments from "./pages/Payments";
 import Reminders from "./pages/Reminders";
 import Analytics from "./pages/Analytics";
-import Pricing from "./pages/Pricing";
 import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 
@@ -26,9 +26,10 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
-        <SubscriptionProvider>
+        <RegionProvider>
           <InvoiceProvider>
             <BrowserRouter>
+              <RegionPickerDialog />
               <Routes>
                 <Route path="/auth" element={<Auth />} />
                 <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
@@ -37,14 +38,13 @@ const App = () => (
                   <Route path="/payments" element={<Payments />} />
                   <Route path="/reminders" element={<Reminders />} />
                   <Route path="/analytics" element={<Analytics />} />
-                  <Route path="/pricing" element={<Pricing />} />
                   <Route path="/install" element={<Install />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
           </InvoiceProvider>
-        </SubscriptionProvider>
+        </RegionProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
