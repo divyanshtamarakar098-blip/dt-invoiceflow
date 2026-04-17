@@ -21,9 +21,6 @@ const Dashboard = () => {
 
   const overdueCount = invoices.filter(i => i.status === 'overdue').length;
 
-  const fmt = (n: number) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
-
   const recent = [...invoices].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5);
 
   return (
