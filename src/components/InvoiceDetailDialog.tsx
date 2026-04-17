@@ -4,6 +4,7 @@ import { getInvoiceTotal } from '@/types/invoice';
 import StatusBadge from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { MessageCircle } from 'lucide-react';
+import { useRegion } from '@/context/RegionContext';
 
 interface Props {
   invoiceId: string;
@@ -13,12 +14,11 @@ interface Props {
 
 const InvoiceDetailDialog = ({ invoiceId, open, onOpenChange }: Props) => {
   const { invoices, updateStatus } = useInvoices();
+  const { formatCurrency: fmt } = useRegion();
   const inv = invoices.find(i => i.id === invoiceId);
   if (!inv) return null;
 
   const total = getInvoiceTotal(inv.items);
-  const fmt = (n: number) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
   const whatsappUrl = `https://wa.me/${inv.clientPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
     `Hi ${inv.clientName}, this is a reminder regarding invoice ${inv.invoiceNumber} for ${fmt(total)}, due on ${inv.dueDate}. Please let us know if you have any questions.`

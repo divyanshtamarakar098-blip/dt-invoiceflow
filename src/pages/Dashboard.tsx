@@ -4,10 +4,12 @@ import { getInvoiceTotal } from '@/types/invoice';
 import StatCard from '@/components/StatCard';
 import StatusBadge from '@/components/StatusBadge';
 import { useNavigate } from 'react-router-dom';
+import { useRegion } from '@/context/RegionContext';
 
 const Dashboard = () => {
   const { invoices } = useInvoices();
   const navigate = useNavigate();
+  const { formatCurrency: fmt } = useRegion();
 
   const totalRevenue = invoices
     .filter(i => i.status === 'paid')

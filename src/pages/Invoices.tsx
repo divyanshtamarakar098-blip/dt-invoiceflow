@@ -6,10 +6,7 @@ import StatusBadge from '@/components/StatusBadge';
 import InvoiceFormDialog from '@/components/InvoiceFormDialog';
 import InvoiceDetailDialog from '@/components/InvoiceDetailDialog';
 import { Button } from '@/components/ui/button';
-import { useSubscription } from '@/context/SubscriptionContext';
-import { useNavigate } from 'react-router-dom';
-
-const FREE_INVOICE_LIMIT = 5;
+import { useRegion } from '@/context/RegionContext';
 
 const filters: { label: string; value: InvoiceStatus | 'all' }[] = [
   { label: 'All', value: 'all' },
@@ -20,17 +17,12 @@ const filters: { label: string; value: InvoiceStatus | 'all' }[] = [
 
 const Invoices = () => {
   const { invoices, deleteInvoice } = useInvoices();
-  const { isPro } = useSubscription();
-  const navigate = useNavigate();
+  const { formatCurrency: fmt } = useRegion();
   const [filter, setFilter] = useState<InvoiceStatus | 'all'>('all');
   const [formOpen, setFormOpen] = useState(false);
   const [viewInvoice, setViewInvoice] = useState<string | null>(null);
 
   const filtered = filter === 'all' ? invoices : invoices.filter(i => i.status === filter);
-  const atLimit = !isPro && invoices.length >= FREE_INVOICE_LIMIT;
-
-  const fmt = (n: number) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
   return (
     <div className="space-y-6">
@@ -39,18 +31,11 @@ const Invoices = () => {
           <h1 className="text-2xl font-bold text-foreground">Invoices</h1>
           <p className="text-muted-foreground text-sm mt-1">
             {invoices.length} total invoices
-            {!isPro && ` · ${FREE_INVOICE_LIMIT - invoices.length > 0 ? FREE_INVOICE_LIMIT - invoices.length : 0} remaining on free plan`}
           </p>
         </div>
-        {atLimit ? (
-          <Button onClick={() => navigate('/pricing')} variant="outline" className="gap-2">
-            Upgrade for more
-          </Button>
-        ) : (
-          <Button onClick={() => setFormOpen(true)} className="gap-2">
-            <Plus className="w-4 h-4" /> New Invoice
-          </Button>
-        )}
+        <Button onClick={() => setFormOpen(true)} className="gap-2">
+          <Plus className="w-4 h-4" /> New Invoice
+        </Button>
       </div>
 
       <div className="flex gap-2">

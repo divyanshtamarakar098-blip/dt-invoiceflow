@@ -3,12 +3,11 @@ import { getInvoiceTotal, InvoiceStatus } from '@/types/invoice';
 import StatusBadge from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle } from 'lucide-react';
+import { useRegion } from '@/context/RegionContext';
 
 const Payments = () => {
   const { invoices, updateStatus } = useInvoices();
-
-  const fmt = (n: number) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
+  const { formatCurrency: fmt } = useRegion();
 
   const sorted = [...invoices].sort((a, b) => {
     const order: Record<InvoiceStatus, number> = { overdue: 0, pending: 1, paid: 2 };
