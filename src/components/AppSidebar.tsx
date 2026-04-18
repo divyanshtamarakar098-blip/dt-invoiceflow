@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, CreditCard, MessageCircle, BarChart3, Download, LogOut } from 'lucide-react';
+import { LayoutDashboard, FileText, CreditCard, MessageCircle, BarChart3, Download, Settings as SettingsIcon, LogOut } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const links = [
@@ -9,6 +9,7 @@ const links = [
   { to: '/reminders', icon: MessageCircle, label: 'Reminders' },
   { to: '/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/install', icon: Download, label: 'Install App' },
+  { to: '/settings', icon: SettingsIcon, label: 'Settings' },
 ];
 
 const AppSidebar = () => {

@@ -4,25 +4,39 @@ export type Region = 'IN' | 'INTL';
 export type Currency = 'INR' | 'USD';
 
 interface RegionContextType {
-  region: Region | null;
+  region: Region;
   currency: Currency;
   setRegion: (r: Region) => void;
   formatCurrency: (n: number) => string;
-  needsPicker: boolean;
 }
 
 const RegionContext = createContext<RegionContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'user_region';
 
+const detectRegion = (): Region => {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    if (tz.toLowerCase().includes('kolkata') || tz.toLowerCase().includes('calcutta')) return 'IN';
+    const langs = [navigator.language, ...(navigator.languages || [])].map((l) => l.toLowerCase());
+    if (langs.some((l) => l.includes('-in') || l === 'hi' || l.startsWith('hi-'))) return 'IN';
+  } catch {
+    // ignore
+  }
+  return 'INTL';
+};
+
 export const RegionProvider = ({ children }: { children: React.ReactNode }) => {
-  const [region, setRegionState] = useState<Region | null>(() => {
+  const [region, setRegionState] = useState<Region>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    return stored === 'IN' || stored === 'INTL' ? stored : null;
+    if (stored === 'IN' || stored === 'INTL') return stored;
+    const detected = detectRegion();
+    localStorage.setItem(STORAGE_KEY, detected);
+    return detected;
   });
 
   useEffect(() => {
-    if (region) localStorage.setItem(STORAGE_KEY, region);
+    localStorage.setItem(STORAGE_KEY, region);
   }, [region]);
 
   const setRegion = useCallback((r: Region) => setRegionState(r), []);
@@ -40,7 +54,7 @@ export const RegionProvider = ({ children }: { children: React.ReactNode }) => {
   );
 
   return (
-    <RegionContext.Provider value={{ region, currency, setRegion, formatCurrency, needsPicker: region === null }}>
+    <RegionContext.Provider value={{ region, currency, setRegion, formatCurrency }}>
       {children}
     </RegionContext.Provider>
   );
