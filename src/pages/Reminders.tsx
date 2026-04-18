@@ -1,19 +1,27 @@
 import { useInvoices } from '@/context/InvoiceContext';
-import { getInvoiceTotal } from '@/types/invoice';
+import { getInvoiceTotal, Invoice } from '@/types/invoice';
 import StatusBadge from '@/components/StatusBadge';
 import { MessageCircle, Send } from 'lucide-react';
 import { useRegion } from '@/context/RegionContext';
+import { buildWhatsAppUrl } from '@/lib/whatsapp';
+import { toast } from 'sonner';
 
 const Reminders = () => {
   const { invoices } = useInvoices();
   const { formatCurrency: fmt } = useRegion();
   const unpaid = invoices.filter(i => i.status !== 'paid');
 
-  const getWhatsAppUrl = (inv: typeof invoices[0]) => {
+  const handleSend = (inv: Invoice) => {
     const total = getInvoiceTotal(inv.items);
-    return `https://wa.me/${inv.clientPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-      `Hi ${inv.clientName}, this is a friendly reminder regarding invoice ${inv.invoiceNumber} for ${fmt(total)}, due on ${inv.dueDate}. Please let us know if you have any questions. Thank you!`
-    )}`;
+    const message = `Hi ${inv.clientName}, this is a friendly reminder regarding invoice ${inv.invoiceNumber} for ${fmt(total)}, due on ${inv.dueDate}. Please let us know if you have any questions. Thank you!`;
+    const url = buildWhatsAppUrl(inv.clientPhone, message);
+    if (!url) {
+      toast.error('Invalid phone number', {
+        description: 'Please add a valid phone number with country code (e.g. +91XXXXXXXXXX) to this client.',
+      });
+      return;
+    }
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -43,11 +51,12 @@ const Reminders = () => {
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">{inv.clientPhone}</p>
               </div>
-              <a href={getWhatsAppUrl(inv)} target="_blank" rel="noopener noreferrer">
-                <button className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-whatsapp text-whatsapp-foreground font-medium text-sm hover:opacity-90 transition-opacity">
-                  <Send className="w-4 h-4" /> Send Reminder
-                </button>
-              </a>
+              <button
+                onClick={() => handleSend(inv)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-whatsapp text-whatsapp-foreground font-medium text-sm hover:opacity-90 transition-opacity"
+              >
+                <Send className="w-4 h-4" /> Send Reminder
+              </button>
             </div>
           ))}
         </div>
