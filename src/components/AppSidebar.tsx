@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, CreditCard, MessageCircle, BarChart3, Download, Settings as SettingsIcon, LogOut } from 'lucide-react';
+import { LayoutDashboard, FileText, CreditCard, MessageCircle, BarChart3, Download, Settings as SettingsIcon, LogOut, Sparkles } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useRegion } from '@/context/RegionContext';
 
 const links = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -15,37 +16,52 @@ const links = [
 const AppSidebar = () => {
   const location = useLocation();
   const { signOut, user } = useAuth();
+  const { country } = useRegion();
 
   return (
-    <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card min-h-screen p-4 gap-1">
-      <div className="flex items-center gap-2 px-3 py-4 mb-4">
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-          <FileText className="w-4 h-4 text-primary-foreground" />
+    <aside className="hidden md:flex flex-col w-64 border-r border-sidebar-border bg-sidebar min-h-screen p-4 gap-1 sticky top-0">
+      <div className="flex items-center gap-3 px-3 py-4 mb-2">
+        <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-glow">
+          <Sparkles className="w-4 h-4 text-primary-foreground" />
         </div>
-        <span className="font-semibold text-lg text-foreground">InvoiceFlow</span>
+        <div className="flex flex-col leading-tight">
+          <span className="font-bold text-base text-foreground tracking-tight">InvoiceFlow</span>
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Pro Suite</span>
+        </div>
       </div>
+
+      <div className="h-px bg-sidebar-border mb-2" />
+
       {links.map(({ to, icon: Icon, label }) => {
         const active = location.pathname === to;
         return (
           <NavLink
             key={to}
             to={to}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+            className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
               active
-                ? 'bg-primary/10 text-primary'
-                : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-sm'
+                : 'text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground'
             }`}
           >
+            {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full gradient-primary" />}
             <Icon className="w-4 h-4" />
             {label}
           </NavLink>
         );
       })}
-      <div className="mt-auto pt-4 border-t border-border">
-        <p className="px-3 text-xs text-muted-foreground truncate mb-2">{user?.email ?? 'Guest'}</p>
+
+      <div className="mt-auto pt-4 border-t border-sidebar-border space-y-2">
+        <div className="px-3 py-2 rounded-xl bg-sidebar-accent/40 flex items-center gap-2">
+          <span className="text-base">{country.flag}</span>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-medium text-foreground truncate">{user?.email ?? 'Guest'}</p>
+            <p className="text-[10px] text-muted-foreground">{country.currency} · {country.name}</p>
+          </div>
+        </div>
         <button
           onClick={signOut}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors w-full"
+          className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors w-full"
         >
           <LogOut className="w-4 h-4" /> Sign Out
         </button>
