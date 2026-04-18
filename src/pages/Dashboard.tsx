@@ -25,9 +25,13 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground text-sm mt-1">Overview of your invoices and payments</p>
+      <div className="relative overflow-hidden rounded-2xl gradient-primary p-6 md:p-8 text-primary-foreground shadow-elegant">
+        <div className="absolute inset-0 gradient-mesh opacity-30 pointer-events-none" />
+        <div className="relative">
+          <p className="text-xs uppercase tracking-widest opacity-80">Welcome back</p>
+          <h1 className="text-2xl md:text-3xl font-bold mt-1 tracking-tight">Dashboard</h1>
+          <p className="text-sm opacity-90 mt-2 max-w-lg">Track revenue, monitor pending payments, and stay on top of overdue invoices — all in one place.</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -37,11 +41,11 @@ const Dashboard = () => {
         <StatCard icon={FileText} title="Total Invoices" value={String(invoices.length)} subtitle="All statuses" />
       </div>
 
-      <div className="glass-card rounded-xl">
+      <div className="glass-card rounded-2xl">
         <div className="p-5 border-b border-border flex items-center justify-between">
           <h2 className="font-semibold text-foreground">Recent Invoices</h2>
-          <button onClick={() => navigate('/invoices')} className="text-sm text-primary hover:underline">
-            View all
+          <button onClick={() => navigate('/invoices')} className="text-sm font-medium text-primary hover:underline">
+            View all →
           </button>
         </div>
         <div className="divide-y divide-border">
