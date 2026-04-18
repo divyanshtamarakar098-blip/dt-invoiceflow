@@ -5,6 +5,8 @@ import StatusBadge from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { MessageCircle } from 'lucide-react';
 import { useRegion } from '@/context/RegionContext';
+import { buildWhatsAppUrl } from '@/lib/whatsapp';
+import { toast } from 'sonner';
 
 interface Props {
   invoiceId: string;
@@ -20,9 +22,18 @@ const InvoiceDetailDialog = ({ invoiceId, open, onOpenChange }: Props) => {
 
   const total = getInvoiceTotal(inv.items);
 
-  const whatsappUrl = `https://wa.me/${inv.clientPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-    `Hi ${inv.clientName}, this is a reminder regarding invoice ${inv.invoiceNumber} for ${fmt(total)}, due on ${inv.dueDate}. Please let us know if you have any questions.`
-  )}`;
+  const whatsappMessage = `Hi ${inv.clientName}, this is a reminder regarding invoice ${inv.invoiceNumber} for ${fmt(total)}, due on ${inv.dueDate}. Please let us know if you have any questions.`;
+  const whatsappUrl = buildWhatsAppUrl(inv.clientPhone, whatsappMessage);
+
+  const handleWhatsApp = () => {
+    if (!whatsappUrl) {
+      toast.error('Invalid phone number', {
+        description: 'Add a valid phone number with country code (e.g. +91XXXXXXXXXX).',
+      });
+      return;
+    }
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -90,11 +101,14 @@ const InvoiceDetailDialog = ({ invoiceId, open, onOpenChange }: Props) => {
                 Mark as Paid
               </Button>
             )}
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
-              <Button variant="outline" className="w-full gap-2 border-whatsapp text-whatsapp hover:bg-whatsapp/10">
-                <MessageCircle className="w-4 h-4" /> WhatsApp
-              </Button>
-            </a>
+            <Button
+              type="button"
+              onClick={handleWhatsApp}
+              variant="outline"
+              className="flex-1 gap-2 border-whatsapp text-whatsapp hover:bg-whatsapp/10"
+            >
+              <MessageCircle className="w-4 h-4" /> WhatsApp
+            </Button>
           </div>
         </div>
       </DialogContent>
