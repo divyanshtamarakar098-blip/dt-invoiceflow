@@ -113,6 +113,7 @@ const InvoiceFormDialog = ({ open, onOpenChange }: Props) => {
         extracted.warnings.forEach((w: string) => toast.warning(w));
       }
       triggerGlow(['client', 'phone', 'email', 'due', 'items', 'notes']);
+      setSelectedFile(null);
     } catch (e: any) {
       console.error(e);
       const msg = e?.context?.error || e?.message || 'Extraction failed';
