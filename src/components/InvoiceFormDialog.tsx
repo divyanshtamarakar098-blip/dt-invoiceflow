@@ -158,12 +158,18 @@ const InvoiceFormDialog = ({ open, onOpenChange }: Props) => {
       if (d.due_date) { setDueDate(d.due_date); filled.push('due'); }
       if (d.notes) { setNotes(d.notes); filled.push('notes'); }
       if (Array.isArray(d.line_items) && d.line_items.length > 0) {
-        setItems(d.line_items.map((it: any) => ({
+        const newItems = d.line_items.map((it: any) => ({
           id: crypto.randomUUID(),
           description: String(it.description ?? ''),
           quantity: Number(it.quantity) || 1,
           rate: Number(it.rate) || 0,
-        })));
+        }));
+        setItems((prev) => {
+          const hasRealItems = prev.some(
+            (p) => p.description.trim() !== '' || p.rate > 0,
+          );
+          return hasRealItems ? [...prev, ...newItems] : newItems;
+        });
         filled.push('items');
       }
 
