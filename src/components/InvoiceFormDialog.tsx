@@ -176,6 +176,9 @@ const InvoiceFormDialog = ({ open, onOpenChange }: Props) => {
 
       toast.success('✓ Invoice details extracted! Review and save.');
       triggerGlow(filled);
+      // Clear NLP input + reset voice transcript so the next prompt is independent
+      setNlpInput('');
+      finalTranscriptRef.current = '';
       // Smooth scroll to form
       window.setTimeout(() => {
         formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
