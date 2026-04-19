@@ -93,14 +93,18 @@ const InvoiceFormDialog = ({ open, onOpenChange }: Props) => {
       if (extracted.dueDate) setDueDate(extracted.dueDate);
       if (extracted.notes) setNotes(extracted.notes);
       if (Array.isArray(extracted.items) && extracted.items.length > 0) {
-        setItems(
-          extracted.items.map((it: any) => ({
-            id: crypto.randomUUID(),
-            description: String(it.description ?? ''),
-            quantity: Number(it.quantity) || 1,
-            rate: Number(it.rate) || 0,
-          })),
-        );
+        const newItems = extracted.items.map((it: any) => ({
+          id: crypto.randomUUID(),
+          description: String(it.description ?? ''),
+          quantity: Number(it.quantity) || 1,
+          rate: Number(it.rate) || 0,
+        }));
+        setItems((prev) => {
+          const hasRealItems = prev.some(
+            (p) => p.description.trim() !== '' || p.rate > 0,
+          );
+          return hasRealItems ? [...prev, ...newItems] : newItems;
+        });
       }
 
       const conf = extracted.confidence ?? 'medium';
@@ -109,6 +113,7 @@ const InvoiceFormDialog = ({ open, onOpenChange }: Props) => {
         extracted.warnings.forEach((w: string) => toast.warning(w));
       }
       triggerGlow(['client', 'phone', 'email', 'due', 'items', 'notes']);
+      setSelectedFile(null);
     } catch (e: any) {
       console.error(e);
       const msg = e?.context?.error || e?.message || 'Extraction failed';
@@ -154,17 +159,26 @@ const InvoiceFormDialog = ({ open, onOpenChange }: Props) => {
       if (d.due_date) { setDueDate(d.due_date); filled.push('due'); }
       if (d.notes) { setNotes(d.notes); filled.push('notes'); }
       if (Array.isArray(d.line_items) && d.line_items.length > 0) {
-        setItems(d.line_items.map((it: any) => ({
+        const newItems = d.line_items.map((it: any) => ({
           id: crypto.randomUUID(),
           description: String(it.description ?? ''),
           quantity: Number(it.quantity) || 1,
           rate: Number(it.rate) || 0,
-        })));
+        }));
+        setItems((prev) => {
+          const hasRealItems = prev.some(
+            (p) => p.description.trim() !== '' || p.rate > 0,
+          );
+          return hasRealItems ? [...prev, ...newItems] : newItems;
+        });
         filled.push('items');
       }
 
       toast.success('✓ Invoice details extracted! Review and save.');
       triggerGlow(filled);
+      // Clear NLP input + reset voice transcript so the next prompt is independent
+      setNlpInput('');
+      finalTranscriptRef.current = '';
       // Smooth scroll to form
       window.setTimeout(() => {
         formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
