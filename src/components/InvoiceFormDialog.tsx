@@ -62,6 +62,8 @@ const InvoiceFormDialog = ({ open, onOpenChange }: Props) => {
   const [glow, setGlow] = useState<Set<GlowField>>(new Set());
   const formRef = useRef<HTMLFormElement>(null);
   const recognitionRef = useRef<any>(null);
+  const shouldListenRef = useRef(false);
+  const finalTranscriptRef = useRef('');
 
   const triggerGlow = (fields: GlowField[]) => {
     setGlow(new Set(fields));
@@ -184,33 +186,79 @@ const InvoiceFormDialog = ({ open, onOpenChange }: Props) => {
       return;
     }
     if (isListening) {
-      recognitionRef.current?.stop();
+      // Manual stop
+      shouldListenRef.current = false;
+      try { recognitionRef.current?.stop(); } catch {}
       setIsListening(false);
       return;
     }
+
+    // Capture baseline so we always append to whatever was there when mic started
+    finalTranscriptRef.current = nlpInput ? nlpInput.trim() + ' ' : '';
+
     const rec = new SpeechRecognition();
     rec.lang = navigator.language || 'en-US';
-    rec.interimResults = false;
-    rec.continuous = false;
+    rec.interimResults = true;
+    rec.continuous = true;
+    rec.maxAlternatives = 1;
+
     rec.onresult = (event: any) => {
-      const transcript = Array.from(event.results)
-        .map((r: any) => r[0].transcript)
-        .join(' ');
-      setNlpInput(prev => (prev ? prev.trim() + ' ' : '') + transcript);
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const res = event.results[i];
+        const text = res[0].transcript;
+        if (res.isFinal) {
+          finalTranscriptRef.current += text + ' ';
+        } else {
+          interim += text;
+        }
+      }
+      setNlpInput((finalTranscriptRef.current + interim).replace(/\s+/g, ' ').trimStart());
     };
+
     rec.onerror = (e: any) => {
-      console.error('Speech error', e);
-      toast.error('Voice input error. Please try again.');
-      setIsListening(false);
+      console.error('Speech error', e?.error || e);
+      // 'no-speech' and 'aborted' shouldn't kill the session — let onend auto-restart
+      if (e?.error === 'not-allowed' || e?.error === 'service-not-allowed') {
+        toast.error('Microphone permission denied. Please allow mic access.');
+        shouldListenRef.current = false;
+        setIsListening(false);
+      } else if (e?.error && e.error !== 'no-speech' && e.error !== 'aborted') {
+        toast.error(`Voice input error: ${e.error}`);
+      }
     };
-    rec.onend = () => setIsListening(false);
+
+    rec.onend = () => {
+      // Auto-restart while user hasn't manually stopped
+      if (shouldListenRef.current) {
+        try {
+          rec.start();
+        } catch (err) {
+          console.error('Restart failed', err);
+          setIsListening(false);
+          shouldListenRef.current = false;
+        }
+      } else {
+        setIsListening(false);
+      }
+    };
+
     recognitionRef.current = rec;
-    rec.start();
-    setIsListening(true);
+    shouldListenRef.current = true;
+    try {
+      rec.start();
+      setIsListening(true);
+      toast.success('Listening… tap mic again to stop.');
+    } catch (err) {
+      console.error('Start failed', err);
+      shouldListenRef.current = false;
+      toast.error('Could not start voice input.');
+    }
   };
 
   useEffect(() => {
     return () => {
+      shouldListenRef.current = false;
       try { recognitionRef.current?.stop(); } catch {}
     };
   }, []);
