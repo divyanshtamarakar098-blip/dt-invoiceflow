@@ -146,4 +146,28 @@
     background-clip: text;
     color: transparent;
   }
+  .ai-glow {
+    animation: ai-glow 2s ease-out;
+  }
+  @keyframes ai-glow {
+    0% {
+      box-shadow: 0 0 0 0 hsl(var(--success) / 0);
+      border-color: hsl(var(--input));
+    }
+    20% {
+      box-shadow: 0 0 0 4px hsl(var(--success) / 0.25);
+      border-color: hsl(var(--success));
+    }
+    100% {
+      box-shadow: 0 0 0 0 hsl(var(--success) / 0);
+      border-color: hsl(var(--input));
+    }
+  }
+  .mic-pulse {
+    animation: mic-pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes mic-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 hsl(var(--destructive) / 0.5); }
+    50% { box-shadow: 0 0 0 8px hsl(var(--destructive) / 0); }
+  }
 }
