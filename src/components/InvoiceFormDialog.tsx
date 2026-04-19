@@ -93,14 +93,18 @@ const InvoiceFormDialog = ({ open, onOpenChange }: Props) => {
       if (extracted.dueDate) setDueDate(extracted.dueDate);
       if (extracted.notes) setNotes(extracted.notes);
       if (Array.isArray(extracted.items) && extracted.items.length > 0) {
-        setItems(
-          extracted.items.map((it: any) => ({
-            id: crypto.randomUUID(),
-            description: String(it.description ?? ''),
-            quantity: Number(it.quantity) || 1,
-            rate: Number(it.rate) || 0,
-          })),
-        );
+        const newItems = extracted.items.map((it: any) => ({
+          id: crypto.randomUUID(),
+          description: String(it.description ?? ''),
+          quantity: Number(it.quantity) || 1,
+          rate: Number(it.rate) || 0,
+        }));
+        setItems((prev) => {
+          const hasRealItems = prev.some(
+            (p) => p.description.trim() !== '' || p.rate > 0,
+          );
+          return hasRealItems ? [...prev, ...newItems] : newItems;
+        });
       }
 
       const conf = extracted.confidence ?? 'medium';
