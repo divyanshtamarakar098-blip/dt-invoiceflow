@@ -21,7 +21,7 @@ const Reminders = () => {
       });
       return;
     }
-    window.open(url, '_blank', 'noopener,noreferrer');
+    openWhatsApp(url);
   };
 
   return (
