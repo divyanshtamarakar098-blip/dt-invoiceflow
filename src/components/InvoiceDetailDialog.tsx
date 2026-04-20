@@ -32,7 +32,12 @@ const InvoiceDetailDialog = ({ invoiceId, open, onOpenChange }: Props) => {
       });
       return;
     }
-    openWhatsApp(whatsappUrl);
+
+    if (!openWhatsApp(whatsappUrl)) {
+      toast.error('Could not open WhatsApp', {
+        description: 'Please allow popups for this site and try again.',
+      });
+    }
   };
 
   return (

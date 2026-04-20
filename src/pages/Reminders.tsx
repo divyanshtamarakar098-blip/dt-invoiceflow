@@ -21,7 +21,12 @@ const Reminders = () => {
       });
       return;
     }
-    openWhatsApp(url);
+
+    if (!openWhatsApp(url)) {
+      toast.error('Could not open WhatsApp', {
+        description: 'Please allow popups for this site and try again.',
+      });
+    }
   };
 
   return (
