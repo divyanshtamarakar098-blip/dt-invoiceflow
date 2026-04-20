@@ -32,7 +32,7 @@ const InvoiceDetailDialog = ({ invoiceId, open, onOpenChange }: Props) => {
       });
       return;
     }
-    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    openWhatsApp(whatsappUrl);
   };
 
   return (
