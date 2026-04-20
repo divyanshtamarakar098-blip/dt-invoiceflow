@@ -17,12 +17,20 @@ export const buildWhatsAppUrl = (phone: string, message: string): string | null 
 };
 
 /**
- * Opens WhatsApp reliably across browsers / popup blockers / iframes (Lovable preview).
- * Strategy: create a real <a target="_blank"> and click it — this is treated as a
- * user-initiated navigation and is not blocked the way window.open() can be.
- * Falls back to top-level navigation if needed.
+ * Opens WhatsApp reliably across browsers / popup blockers / preview iframes.
+ * In the Lovable preview, WhatsApp can be blocked if it tries to render inside the iframe,
+ * so we first navigate the top window. Outside the preview, we keep the normal new-tab flow.
  */
 export const openWhatsApp = (url: string): void => {
+  try {
+    if (window.top && window.top !== window.self) {
+      window.top.location.href = url;
+      return;
+    }
+  } catch {
+    // Cross-frame access can fail in some environments; continue to safe fallbacks.
+  }
+
   try {
     const a = document.createElement('a');
     a.href = url;
@@ -32,7 +40,6 @@ export const openWhatsApp = (url: string): void => {
     a.click();
     document.body.removeChild(a);
   } catch {
-    // Last-resort fallback
     try {
       window.open(url, '_blank', 'noopener,noreferrer');
     } catch {
