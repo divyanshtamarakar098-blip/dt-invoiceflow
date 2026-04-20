@@ -15,3 +15,28 @@ export const buildWhatsAppUrl = (phone: string, message: string): string | null 
   if (!normalized || normalized.length < 8) return null;
   return `https://wa.me/${normalized}?text=${encodeURIComponent(message)}`;
 };
+
+/**
+ * Opens WhatsApp reliably across browsers / popup blockers / iframes (Lovable preview).
+ * Strategy: create a real <a target="_blank"> and click it — this is treated as a
+ * user-initiated navigation and is not blocked the way window.open() can be.
+ * Falls back to top-level navigation if needed.
+ */
+export const openWhatsApp = (url: string): void => {
+  try {
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch {
+    // Last-resort fallback
+    try {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch {
+      window.location.href = url;
+    }
+  }
+};
