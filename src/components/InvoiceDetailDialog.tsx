@@ -5,7 +5,7 @@ import StatusBadge from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { MessageCircle } from 'lucide-react';
 import { useRegion } from '@/context/RegionContext';
-import { buildWhatsAppUrl } from '@/lib/whatsapp';
+import { buildWhatsAppUrl, openWhatsApp } from '@/lib/whatsapp';
 import { toast } from 'sonner';
 
 interface Props {
