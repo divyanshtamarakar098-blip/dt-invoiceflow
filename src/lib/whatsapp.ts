@@ -18,19 +18,14 @@ export const buildWhatsAppUrl = (phone: string, message: string): string | null 
 
 /**
  * Opens WhatsApp reliably across browsers / popup blockers / preview iframes.
- * In the Lovable preview, WhatsApp can be blocked if it tries to render inside the iframe,
- * so we first navigate the top window. Outside the preview, we keep the normal new-tab flow.
+ * WhatsApp sends X-Frame-Options: DENY, so it cannot render inside an iframe.
+ * We must open it in a real top-level new tab. We never touch window.top.location
+ * because in cross-origin embeds (like the Lovable preview) that either throws
+ * or hijacks the parent editor.
  */
 export const openWhatsApp = (url: string): void => {
-  try {
-    if (window.top && window.top !== window.self) {
-      window.top.location.href = url;
-      return;
-    }
-  } catch {
-    // Cross-frame access can fail in some environments; continue to safe fallbacks.
-  }
-
+  // Primary: synchronous anchor click with target="_blank" — preserves the user
+  // gesture and is the most reliable way to escape an iframe into a new tab.
   try {
     const a = document.createElement('a');
     a.href = url;
@@ -38,12 +33,20 @@ export const openWhatsApp = (url: string): void => {
     a.rel = 'noopener noreferrer';
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
+    a.remove();
+    return;
   } catch {
-    try {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } catch {
-      window.location.href = url;
-    }
+    // fall through
   }
+
+  // Fallback: window.open in a new tab.
+  try {
+    const newWin = window.open(url, '_blank', 'noopener,noreferrer');
+    if (newWin) return;
+  } catch {
+    // fall through
+  }
+
+  // Last resort: navigate current frame.
+  window.location.href = url;
 };
