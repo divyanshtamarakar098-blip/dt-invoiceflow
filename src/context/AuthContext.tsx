@@ -6,6 +6,9 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  isGuest: boolean;
+  enterGuestMode: () => void;
+  exitGuestMode: () => void;
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -17,6 +20,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  // Guest mode is intentionally ephemeral (in-memory only). It is reset on every
+  // page reload so it cannot be persisted by an attacker via localStorage/XSS.
+  const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -53,10 +59,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setIsGuest(false);
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{
+        session,
+        user,
+        loading,
+        isGuest,
+        enterGuestMode: () => setIsGuest(true),
+        exitGuestMode: () => setIsGuest(false),
+        signUp,
+        signIn,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
