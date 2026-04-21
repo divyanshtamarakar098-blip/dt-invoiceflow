@@ -1,6 +1,8 @@
 // Edge function: extract invoice data from an image/PDF using Lovable AI (Gemini vision).
 // Client sends { fileBase64, mimeType }. Returns structured JSON via tool calling.
 
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -23,6 +25,27 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Require an authenticated user — this function consumes paid AI credits.
+    const authHeader = req.headers.get("Authorization") ?? "";
+    if (!authHeader.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+    );
+    const token = authHeader.replace("Bearer ", "");
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       return new Response(JSON.stringify({ error: "AI not configured" }), {
@@ -35,6 +58,28 @@ Deno.serve(async (req) => {
     if (!fileBase64 || !mimeType) {
       return new Response(
         JSON.stringify({ error: "fileBase64 and mimeType are required" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+    // Reject files larger than ~5 MB to prevent abuse of AI credits / memory.
+    // base64 is ~4/3 the size of binary, so 7 MB of base64 ≈ 5 MB binary.
+    const MAX_BASE64_BYTES = 7 * 1024 * 1024;
+    if (typeof fileBase64 !== "string" || fileBase64.length > MAX_BASE64_BYTES) {
+      return new Response(
+        JSON.stringify({ error: "File too large. Maximum size is 5 MB." }),
+        {
+          status: 413,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+    const ALLOWED_MIME = ["image/png", "image/jpeg", "image/jpg", "image/webp", "application/pdf"];
+    if (!ALLOWED_MIME.includes(mimeType)) {
+      return new Response(
+        JSON.stringify({ error: "Unsupported file type." }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },

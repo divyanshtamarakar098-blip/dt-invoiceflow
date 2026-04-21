@@ -2,8 +2,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
-  const isGuest = localStorage.getItem('guest_mode') === 'true';
+  const { user, loading, isGuest } = useAuth();
 
   if (loading) {
     return (

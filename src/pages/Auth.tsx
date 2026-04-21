@@ -8,7 +8,7 @@ import { FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Auth = () => {
-  const { user, signIn, signUp } = useAuth();
+  const { user, signIn, signUp, enterGuestMode, exitGuestMode } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
@@ -18,7 +18,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
 
   if (user) {
-    localStorage.removeItem('guest_mode');
+    exitGuestMode();
     return <Navigate to="/" replace />;
   }
 
@@ -31,7 +31,7 @@ const Auth = () => {
       if (error) {
         toast({ title: 'Login failed', description: error.message, variant: 'destructive' });
       } else {
-        localStorage.removeItem('guest_mode');
+        exitGuestMode();
         navigate('/');
       }
     } else {
@@ -39,7 +39,7 @@ const Auth = () => {
       if (error) {
         toast({ title: 'Sign up failed', description: error.message, variant: 'destructive' });
       } else {
-        localStorage.removeItem('guest_mode');
+        exitGuestMode();
         navigate('/');
         toast({ title: 'Account created!', description: 'You are now signed in.' });
       }
@@ -49,7 +49,7 @@ const Auth = () => {
   };
 
   const handleSkip = () => {
-    localStorage.setItem('guest_mode', 'true');
+    enterGuestMode();
     navigate('/');
   };
 
