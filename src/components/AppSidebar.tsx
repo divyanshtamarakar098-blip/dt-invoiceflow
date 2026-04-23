@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, CreditCard, MessageCircle, BarChart3, Download, Settings as SettingsIcon, LogOut, Sparkles } from 'lucide-react';
+import { LayoutDashboard, FileText, CreditCard, MessageCircle, BarChart3, Download, Settings as SettingsIcon, LogOut } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRegion } from '@/context/RegionContext';
 
@@ -21,8 +21,8 @@ const AppSidebar = () => {
   return (
     <aside className="hidden md:flex flex-col w-64 border-r border-sidebar-border bg-sidebar min-h-screen p-4 gap-1 sticky top-0">
       <div className="flex items-center gap-3 px-3 py-4 mb-2">
-        <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-glow">
-          <Sparkles className="w-4 h-4 text-primary-foreground" />
+        <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-glow border border-white/10">
+          <img src="/logo.png" alt="InvoiceFlow Logo" className="w-full h-full object-cover" />
         </div>
         <div className="flex flex-col leading-tight">
           <span className="font-bold text-base text-foreground tracking-tight">InvoiceFlow</span>
