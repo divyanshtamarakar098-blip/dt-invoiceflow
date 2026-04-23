@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/context/AuthContext";
 import { RegionProvider } from "@/context/RegionContext";
 import { InvoiceProvider } from "@/context/InvoiceContext";
@@ -22,31 +23,33 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <AuthProvider>
-        <RegionProvider>
-          <InvoiceProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/invoices" element={<Invoices />} />
-                  <Route path="/payments" element={<Payments />} />
-                  <Route path="/reminders" element={<Reminders />} />
-                  <Route path="/analytics" element={<Analytics />} />
-                  <Route path="/install" element={<Install />} />
-                  <Route path="/settings" element={<Settings />} />
-                </Route>
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </InvoiceProvider>
-        </RegionProvider>
-      </AuthProvider>
-    </TooltipProvider>
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <AuthProvider>
+          <RegionProvider>
+            <InvoiceProvider>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/auth" element={<Auth />} />
+                  <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/invoices" element={<Invoices />} />
+                    <Route path="/payments" element={<Payments />} />
+                    <Route path="/reminders" element={<Reminders />} />
+                    <Route path="/analytics" element={<Analytics />} />
+                    <Route path="/install" element={<Install />} />
+                    <Route path="/settings" element={<Settings />} />
+                  </Route>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </InvoiceProvider>
+          </RegionProvider>
+        </AuthProvider>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

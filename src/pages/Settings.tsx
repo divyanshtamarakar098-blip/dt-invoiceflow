@@ -4,13 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthContext';
 import { useRegion } from '@/context/RegionContext';
+import { useTheme } from 'next-themes';
 import { COUNTRIES } from '@/lib/countries';
-import { LogOut, Globe, User, Search, Check } from 'lucide-react';
+import { LogOut, Globe, User, Search, Check, Moon, Sun, Monitor } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Settings = () => {
   const { user, signOut } = useAuth();
   const { country, setCountry, formatCurrency } = useRegion();
+  const { theme, setTheme } = useTheme();
   const [query, setQuery] = useState('');
 
   const filtered = useMemo(() => {
@@ -48,6 +50,45 @@ const Settings = () => {
           <Button variant="outline" onClick={signOut} className="gap-2">
             <LogOut className="w-4 h-4" /> Sign out
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Sun className="w-4 h-4 dark:hidden" />
+            <Moon className="w-4 h-4 hidden dark:block" />
+            Appearance
+          </CardTitle>
+          <CardDescription>Customize how the application looks.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={theme === 'light' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setTheme('light')}
+              className="gap-2"
+            >
+              <Sun className="w-4 h-4" /> Light
+            </Button>
+            <Button
+              variant={theme === 'dark' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setTheme('dark')}
+              className="gap-2"
+            >
+              <Moon className="w-4 h-4" /> Dark
+            </Button>
+            <Button
+              variant={theme === 'system' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setTheme('system')}
+              className="gap-2"
+            >
+              <Monitor className="w-4 h-4" /> System
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
